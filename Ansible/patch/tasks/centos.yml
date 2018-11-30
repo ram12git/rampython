@@ -1,0 +1,8 @@
+--- 
+  - name: "export cmd"
+    shell: "export http_proxy=\"http://16.167.28.210:8080\""
+  - name: "export https"
+    shell: "export https_proxy=\"https://16.167.28.210:8080\""
+  - name: 'yum'
+    command: "yum update -y"
+      

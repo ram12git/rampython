@@ -1,0 +1,60 @@
+---
+#- hosts: all
+#  remote_user: root
+#
+#  vars:
+#     proxy_hostname: '16.167.28.210'
+#     proxy_port: '8080'
+
+  - name: copy rhsm
+    command: cp /etc/rhsm/rhsm.conf /etc/rhsm/rhsm.conf-rh
+
+  - name: subscription-manager clean
+    command: subscription-manager clean
+
+  - lineinfile:
+      dest: /etc/rhsm/rhsm.conf
+      backrefs: yes
+      regexp: ^proxy_hostname
+      line: proxy_hostname={{ proxy_hostname }}
+      state: present
+
+  - lineinfile:
+       dest: /etc/rhsm/rhsm.conf
+       backrefs: yes
+       regexp: ^proxy_port
+       line: proxy_port={{ proxy_port }}
+       state: present
+
+
+  - name: export cmd
+    shell: export http_proxy="http://16.167.28.210:8080"
+
+  - name: export https
+    shell: export https_proxy="http://16.167.28.210:8080"
+
+
+  - name: copy katello
+    copy:
+      src: /home/provision/ansible1/roles/patch/files/katello-ca-consumer-latest.noarch.rpm
+      dest: /tmp/katello-ca-consumer-latest.noarch.rpm
+
+  - name: install
+    yum:
+      name: /tmp/katello-ca-consumer-latest.noarch.rpm
+      state: present
+
+
+  - name: subscription-manager clean
+    command: subscription-manager clean
+
+
+  - name: register
+    command: subscription-manager register --org="HPE-Internal" --activationkey="karthik.shankara-mn-07312018-key"
+
+  - name: enable
+    command: subscription-manager repos --enable rhel-6-server-satellite-tools-6.2-rpms
+  
+  #-name: update
+  # command: yum update -y
+

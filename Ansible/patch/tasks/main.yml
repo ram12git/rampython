@@ -1,0 +1,9 @@
+---
+
+# Task declaration for RHEL & Centos
+- import_tasks: rhel.yml
+  when: ansible_distribution == 'RedHat'
+
+- import_tasks: centos.yml
+  when: ansible_distribution == 'CentOS'
+

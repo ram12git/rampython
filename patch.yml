@@ -1,0 +1,28 @@
+---
+
+- hosts: all
+  remote_user: root
+  
+  vars:
+    activationkey:  'karthik.shankara-mn-07312018-key'
+    proxy_hostname: 'http://web-proxy.in.hpecorp.net:8080'
+    proxy_port: '8080'
+
+  environment:
+    PATH: "/usr/bin:/usr/sbin"
+   
+  tasks: 
+
+  - name: copy rhsm to rhsm.conf
+    command: cp /etc/rhsm/rhsm.conf /etc/rhsm/rhsm.conf-rh
+  - name: download rpm
+    command: wget http://satserv-hou.us.rdlabs.hpecorp.net/pub/katello-ca-consumer-latest.noarch.rpm
+  - name: Install the satellite certificate
+    command: rpm -ivh http://satserv-hou.us.rdlabs.hpecorp.net/pub/katello-ca-consumer-latest.noarch.rpm
+  - name: subscription-manager clean
+    command: subscription-manager clean
+  - name: register activationkey
+    command: subscription-manager register --org="HPE-Internal" --activationkey= "{{ activationkey }}"
+
+  - name: adding port
+    command: subscription-manager config --server.proxy_hostname=http://web-proxy.in.hpecorp.net:8080 --server.proxy_port=8080 

@@ -1,0 +1,62 @@
+- hosts: all
+  remote_user: root
+  vars:
+     zabbix_server: '15.213.248.31'
+     zabbix_hostname: 'securedev31.in.rdlabs.hpecorp.net'
+  handlers:
+
+   - name: restart zabbix-agent
+     service: name=zabbix-agent state=restarted
+
+
+  tasks:
+
+   - name: repo
+     copy: src=files/repos/zabbix.repo
+           dest=/etc/yum.repos.d/
+           owner=root group=root mode=0644
+     when: ansible_distribution == 'CentOS'
+     tags:
+       - repo
+
+   - rpm_key: state=present key=http://repo.zabbix.com/RPM-GPG-KEY-ZABBIX
+     tags:
+       - repo
+       - zabbix
+
+   - name: zabbix
+     yum: name={{ item }} state=latest
+     with_items:
+       - zabbix-agent
+
+
+     when: ansible_distribution == 'CentOS'
+
+
+   - lineinfile:
+       dest=/etc/zabbix/zabbix_agentd.conf
+       backrefs=yes
+       regexp=^Server=
+       line=Server={{ zabbix_server }}
+   - lineinfile:
+       dest=/etc/zabbix/zabbix_agentd.conf
+       backrefs=yes
+       regexp=^Hostname=
+       line=Hostname={{ zabbix_hostname }}
+   - lineinfile:
+       dest=/etc/zabbix/zabbix_agentd.conf
+       backrefs=yes
+       regexp=^ServerActive=
+       line=ServerActive={{ zabbix_server }}
+
+   - name: firewall enable
+     command: sudo firewall-cmd --add-port=10050/tcp
+   - name: firewall enable
+     command: sudo firewall-cmd --add-port=10050/tcp --permanent
+   - name: iptables allow
+     command: iptables -A INPUT -p tcp -m tcp --dport 10050 -j ACCEPT
+
+     notify:
+       - restart zabbix-agent
+
+   - service: name=zabbix-agent enabled=yes

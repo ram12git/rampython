@@ -1,0 +1,4 @@
+---
+# vars file for patch
+proxy_hostname: '16.167.28.210'
+proxy_port: '8080'

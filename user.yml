@@ -1,0 +1,34 @@
+---
+- name: machine bootstrap
+  hosts: all
+  remote_user: root
+
+  vars:
+    user_name: ansible
+    user_pass: $1$9qOXU8tr$aTN/WwRxQhyqLV2ixxs0o/
+
+  tasks:
+  - name: adding user
+    user: >
+       name={{ user_name }}
+       password={{ user_pass}}
+       shell=/bin/bash
+       groups=root
+       append=yes
+       generate_ssh_key=yes
+       state=present
+
+  - name: Add ansible user to the sudoers
+    copy:
+       dest: "/etc/sudoers.d/ansible"
+       content: "ansible  ALL=(ALL)  NOPASSWD: ALL"
+
+  - name: add my pub_key to new user
+    authorized_key:
+        user: "{{ user_name}}"
+        key: "{{ lookup('file','/home/provision/.ssh/id_rsa.pub')}}"
+        state: present
+
+  handlers:
+  - name: restart ssh
+    service: name=ssh state=restarted
